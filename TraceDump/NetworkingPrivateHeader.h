@@ -2,8 +2,8 @@
 //  NetworkingPrivateHeader.h
 //  TraceDump
 //
-//  Created by 张恒瑜 on 2018/2/11.
-//  Copyright © 2018年 张恒瑜. All rights reserved.
+//  Created by MoonNight on 03/03/2024.
+//  Copyright © 2025 MoonNight. All rights reserved.
 //
 
 #import "InstrumentsPrivateHeader.h"

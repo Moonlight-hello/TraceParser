@@ -2,8 +2,8 @@
 //  ActivityMonitorHeader.h
 //  TraceDump
 //
-//  Created by sherlock on 06/03/2018.
-//  Copyright © 2018 张恒瑜. All rights reserved.
+//  Created by MoonNight on 03/03/2024.
+//  Copyright © 2025 MoonNight. All rights reserved.
 //
 
 #import "InstrumentsPrivateHeader.h"

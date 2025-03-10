@@ -2,8 +2,8 @@
 //  main.m
 //  TraceDump
 //
-//  Created by 张恒瑜 on 2018/2/8.
-//  Copyright © 2018年 张恒瑜. All rights reserved.
+//  Created by MoonNight on 03/03/2024.
+//  Copyright © 2025 MoonNight. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -16,8 +16,104 @@
 #import "NetworkingPrivateHeader.h"
 #import "ActivityMonitorHeader.h"
 
+void printMethodInfo(Class cls);
+NSString *getTypeAsString(const char *typeEncoding);
+void printMethodInfo(Class cls) {
+    unsigned int methodCount = 0;
+    Method *methods = class_copyMethodList(cls, &methodCount);
+    
+    for (unsigned int i = 0; i < methodCount; i++) {
+        SEL selector = method_getName(methods[i]);
+        const char *methodName = sel_getName(selector);
+        
+        // 获取方法的类型编码
+        const char *typeEncoding = method_getTypeEncoding(methods[i]);
+        
+        // 打印方法名称和类型编码
+        NSLog(@"Method: %s, Type Encoding: %s", methodName, typeEncoding);
+    }
+    
+    free(methods);
+}
 
+// 函数：打印方法参数类型
+void printMethodParameterTypes1(Class cls) {
+    unsigned int methodCount = 0;
+    Method *methods = class_copyMethodList(cls, &methodCount);
+    
+    for (unsigned int i = 0; i < methodCount; i++) {
+        Method method = methods[i];
+        SEL selector = method_getName(method);
+        const char *methodName = sel_getName(selector);
+        
+        NSLog(@"Method: %s", methodName);
+        
+        // 获取参数数量
+        unsigned int numberOfArguments = method_getNumberOfArguments(method);
+        for (unsigned int j = 0; j < numberOfArguments; j++) {
+            // 获取参数类型
+            char *typeEncoding = method_copyArgumentType(method, j);
+            if (typeEncoding) {
+                NSLog(@"Parameter %d Type: %s", j, typeEncoding);
+                free(typeEncoding); // 记得释放
+            }
+        }
+        
+        NSLog(@"\n"); // 换行
+    }
+    
+    free(methods);
+}
 
+void printMethodParameterTypes2(Class cls) {
+    unsigned int methodCount = 0;
+    Method *methods = class_copyMethodList(cls, &methodCount);
+    
+    for (unsigned int i = 0; i < methodCount; i++) {
+        Method method = methods[i];
+        SEL selector = method_getName(method);
+        const char *methodName = sel_getName(selector);
+        
+        NSLog(@"Method: %s", methodName);
+        
+        // 获取参数数量
+        unsigned int numberOfArguments = method_getNumberOfArguments(method);
+        
+        for (unsigned int j = 0; j < numberOfArguments; j++) {
+            char typeEncoding[256]; // 缓冲区
+            method_getArgumentType(method, j, typeEncoding, sizeof(typeEncoding));
+            //NSString *typeString = getTypeAsString(typeEncoding);
+          //  NSLog(@"Parameter %d Type: %@", j, typeEncoding);
+        }
+        
+        NSLog(@"\n"); // 换行
+    }
+    
+    free(methods);
+}
+
+// 函数：打印对象的类型
+// 函数：根据类型编码获取具体的对象类型
+NSString *getTypeAsString(const char *typeEncoding) {
+    if (typeEncoding[0] == '@') {
+        // 对象类型，返回类名
+        NSString *className = [NSString stringWithUTF8String:typeEncoding + 2]; // 跳过 "@" 和 "<"
+        return className;
+    } else if (typeEncoding[0] == 'i') {
+        return @"int";
+    } else if (typeEncoding[0] == 's') {
+        return @"short";
+    } else if (typeEncoding[0] == 'f') {
+        return @"float";
+    } else if (typeEncoding[0] == 'd') {
+        return @"double";
+    } else if (typeEncoding[0] == 'v') {
+        return @"void";
+    } else if (typeEncoding[0] == 'B') {
+        return @"BOOL";
+    }
+    return [NSString stringWithUTF8String:typeEncoding]; // 返回原始编码
+}
 
 static NSBundle *(*NSBundle_mainBundle_original)(id self, SEL _cmd);
 static NSBundle *NSBundle_mainBundle_replaced(id self, SEL _cmd) {
@@ -31,45 +127,46 @@ static void __attribute__((constructor)) hook() {
     method_setImplementation(NSBundle_mainBundle, (IMP)NSBundle_mainBundle_replaced);
 }
 
-
 int main(int argc, const char * argv[]) {
     if (argc !=2) {
         LKPrint(@"usage:  /path/to/TraceDump /path/to/xxx.trace");
         return 0;
     }
+    
     @autoreleasepool {
         //初始化 Instruments
-        DVTInitializeSharedFrameworks();
-        [DVTDeveloperPaths initializeApplicationDirectoryName:@"Instruments"];
-        [XRInternalizedSettingsStore configureWithAdditionalURLs:nil];
-        PFTLoadPlugins();
+        Class myClass = NSClassFromString(@"XRPackageConflictErrorAccumulator");
+        
+        if (!myClass) {
+            NSLog(@"Class XRPackageConflictErrorAccumulator not found");
+            return 1;
+        }
+        
+        id myInstance = [myClass alloc];
+        SEL selector = @selector(initWithNextResponder:);
+        if ([myInstance respondsToSelector:selector]) {
+//            // 使用 NSInvocation 调用方法 这句代码非常重要！！！！
+            NSMethodSignature *signature = [myInstance methodSignatureForSelector:selector];
+        } else {
+            NSLog(@"Method handleIssue:type:from: not found");
+        }
+        
+        PFTInitializeSharedFrameworks();
         
         [PFTDocumentController sharedDocumentController];
         
         // 打开一个 trace document.
-//        NSString *tracePath = @"/Users/sherlock/Desktop/activity_monitor.trace";
-//        NSString *tracePath = @"/Users/sherlock/腾讯视频云/InstrumentsRB.trace";
-        NSString *tracePath = [[NSString alloc]initWithUTF8String:argv[1]];
+        // NSString *tracePath = @"/Users/wangxinlong/Documents/Text-systrace.trace";
+        NSString *tracePath = @"/Users/wangxinlong/Documents/MemoryTrace.trace";
         NSError *error = nil;
         NSURL *traceUrl = [NSURL fileURLWithPath:tracePath];
         
-        //iOS11之后需要删除trace文件里面的open.creq文件才能正常读取
-        NSFileManager *fileManager = [NSFileManager defaultManager];
-        [fileManager removeItemAtPath:[tracePath stringByAppendingString:@"/open.creq"] error:&error];
-        if (error) {
-            LKPrint(@"\nWarning: %@\n", error);
-        }else{
-            LKPrint(@"delete open.creq success!");
-        }
+        PFTTraceDocument *document = [[PFTTraceDocument alloc] init];
         
         //读取trace文件
         error = nil;
-        PFTTraceDocument *document = [[PFTTraceDocument alloc]initWithContentsOfURL:traceUrl ofType:@"Trace Document" error:&error];
-//        [document makeWindowControllers];
-//        PFTWindowController *window = document.mainWindowController;
-////        [window setDocument:document];
-//        [window loadWindow];
-//        [window windowDidLoad];
+        
+        [document readFromURL:traceUrl ofType:@"com.apple.instruments.trace" error:&error];
         
         if (error) {
             LKPrint(@"\nError: %@\n", error);
@@ -98,10 +195,7 @@ int main(int argc, const char * argv[]) {
                 instrument.viewController = [[XRAnalysisCoreStandardController alloc]initWithInstrument:instrument document:document];
             }
             id<XRInstrumentViewController> controller = instrument.viewController;
-            [controller instrumentDidChangeSwitches];
-            [controller instrumentChangedTableRequirements];
-//            XRContext *context = controller.detailContextContainer.contextRepresentation;
-//            [context display];
+            
             id<XRContextContainer> container = controller.detailContextContainer.contextRepresentation.container;
             
             // Each instrument can have multiple runs.
@@ -112,7 +206,7 @@ int main(int argc, const char * argv[]) {
             }
             
             for (XRRun *run in runs) {
-                LKPrint(@"Run #%@: %@\n", @(run.runNumber), run.displayName);
+                LKPrint(@"Run #%@: %@\n", @(run.runNumber));
                 instrument.currentRun = run;
                 NSString *instrumentID = instrument.type.uuid;
                 
@@ -120,7 +214,6 @@ int main(int argc, const char * argv[]) {
                     ParseTimeProfile(instrument);
                 }else if ([instrumentID isEqualToString:@"com.apple.xray.instrument-type.oa"]) {
                     ParseAllocationWithRun(run);
-//                    ParseAllocation(container);
                 }else if ([instrumentID isEqualToString:@"com.apple.xray.instrument-type.coreanimation"]){
                     ParseCoreAnimation(run);
                 }else if([instrumentID isEqualToString:@"com.apple.xray.power.mobile.cpu"] || [instrumentID isEqualToString:@"com.apple.xray.power.mobile.energy"] || [instrumentID isEqualToString:@"com.apple.xray.power.mobile.net"]){
@@ -134,7 +227,6 @@ int main(int argc, const char * argv[]) {
                 }else {
                     LKPrint(@"Data processor has not been implemented for this type of instrument.\n");
                 }
-                
             }
             [controller instrumentWillBecomeInvalid];
         }

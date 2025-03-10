@@ -280,7 +280,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
-				DEVELOPMENT_TEAM = 775Q82H79S;
+				DEVELOPMENT_TEAM = MHMVKJ3XNR;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/SharedFrameworks",
 					"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/Applications/Instruments.app/Contents/Frameworks",
@@ -297,7 +297,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
-				DEVELOPMENT_TEAM = 775Q82H79S;
+				DEVELOPMENT_TEAM = MHMVKJ3XNR;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/SharedFrameworks",
 					"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/Applications/Instruments.app/Contents/Frameworks",

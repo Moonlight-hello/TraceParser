@@ -2,8 +2,8 @@
 //  InstrumentsPrivateHeader.h
 //  TraceDump
 //
-//  Created by 张恒瑜 on 2018/2/9.
-//  Copyright © 2018年 张恒瑜. All rights reserved.
+//  Created by MoonNight on 03/03/2024.
+//  Copyright © 2025 MoonNight. All rights reserved.
 //
 
 
@@ -12,6 +12,10 @@
 + (id)defaultPlugInManager;
 - (void)_preLoadPlugIns;
 @end
+
+//@interface XRPackageConflictErrorAccumulator : NSObject
+//- (void)initWithNextResponder;
+//@end
 
 @interface XRActionContextManager : NSObject
 {
@@ -163,9 +167,6 @@ typedef struct { XRTime start, length; } XRTimeRange;
 - (instancetype)initWithInstrument:(XRInstrument *)instrument document:(PFTTraceDocument *)document;
 - (XRBacktraceRepository *)backtraceRepository;
 @end
-
-
-
 
 
 @interface XRMultiProcessBacktraceRepository : XRBacktraceRepository
